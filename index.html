@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bug Simulator — Simple HTML</title>
+  <style>
+    :root {
+      --bg: #0f172a;         /* slate-900 */
+      --panel: #111827;      /* gray-900 */
+      --muted: #94a3b8;      /* slate-400 */
+      --text: #e5e7eb;       /* gray-200 */
+      --accent: #22d3ee;     /* cyan-400 */
+      --accent-2: #a78bfa;   /* violet-400 */
+      --danger: #fb7185;     /* rose-400 */
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+        Noto Sans, Ubuntu, Cantarell, Helvetica Neue, Arial, "Apple Color Emoji",
+        "Segoe UI Emoji";
+      background: radial-gradient(1200px 600px at 70% -10%, #1f2937 0%, var(--bg) 50%), var(--bg);
+      color: var(--text);
+      min-height: 100svh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 16px;
+    }
+
+    header {
+      padding: 16px clamp(16px, 4vw, 32px) 0;
+    }
+    header h1 {
+      margin: 0 0 6px 0;
+      font-size: clamp(20px, 3.2vw, 32px);
+      letter-spacing: 0.2px;
+    }
+    header p { margin: 0; color: var(--muted); }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+      padding: 10px clamp(16px, 4vw, 32px);
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+
+    .control { padding: 10px; display: grid; gap: 8px; align-content: start; }
+    .control label { font-size: 12px; color: var(--muted); }
+
+    input[type="range"] { width: 100%; }
+    input[type="number"] {
+      width: 100%;
+      background: #0b1020;
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 8px 10px;
+    }
+
+    button {
+      cursor: pointer;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      color: var(--text);
+      font-weight: 600;
+      transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+    }
+    button:hover { transform: translateY(-1px); filter: brightness(1.1); }
+    .primary { border-color: rgba(34, 211, 238, 0.45); box-shadow: 0 0 0 2px rgba(34,211,238,0.18) inset; }
+    .danger { border-color: rgba(251, 113, 133, 0.45); box-shadow: 0 0 0 2px rgba(251,113,133,0.18) inset; }
+
+    .world-wrap {
+      padding: 0 clamp(16px, 4vw, 32px) 16px;
+    }
+
+    .world {
+      position: relative;
+      height: min(70vh, 70svh);
+      min-height: 380px;
+      border-radius: 18px;
+      overflow: hidden;
+      background:
+        radial-gradient(120px 60px at 20% 20%, rgba(167,139,250,0.15), transparent 60%),
+        radial-gradient(180px 120px at 80% 70%, rgba(34,211,238,0.12), transparent 60%),
+        #0b1020;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .grid {
+      position: absolute; inset: 0; pointer-events: none;
+      background-image: linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+
+    .bug {
+      position: absolute;
+      width: 28px; height: 28px;
+      display: grid; place-items: center;
+      user-select: none;
+      will-change: transform;
+      transition: filter 120ms ease;
+    }
+    .bug span {
+      font-size: 22px; line-height: 1; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.6));
+      transform-origin: 50% 60%; display: inline-block;
+    }
+    .bug:hover { filter: brightness(1.2); }
+    .squish { transform: scale(0.6) rotate(15deg); opacity: 0.6; }
+
+    footer { padding: 0 clamp(16px, 4vw, 32px) 24px; color: var(--muted); font-size: 12px; }
+
+    @media (max-width: 720px) {
+      .controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🪳 Bug Simulator</h1>
+    <p>Simple HTML + CSS + JS. Add bugs, change speed, click a bug to squish it. Enjoy!</p>
+  </header>
+
+  <section class="controls">
+    <div class="card control" role="group" aria-label="simulation controls">
+      <label>Simulation</label>
+      <div style="display:flex; gap:8px; flex-wrap:wrap">
+        <button id="toggle" class="primary">▶️ Start</button>
+        <button id="reset" class="danger">⟲ Reset</button>
+      </div>
+    </div>
+
+    <div class="card control">
+      <label for="bugsCount">Add Bugs</label>
+      <div style="display:flex; gap:8px">
+        <input id="bugsCount" type="number" min="1" max="200" value="5" />
+        <button id="addBugs" title="Add bugs">➕ Add</button>
+      </div>
+    </div>
+
+    <div class="card control">
+      <label for="speed">Speed</label>
+      <input id="speed" type="range" min="0.2" max="3" value="1" step="0.1" />
+      <small id="speedVal" aria-live="polite">1.0×</small>
+    </div>
+
+    <div class="card control">
+      <label for="turn">Wiggle / Turn Rate</label>
+      <input id="turn" type="range" min="0" max="1" value="0.35" step="0.05" />
+      <small id="turnVal">0.35</small>
+    </div>
+
+    <div class="card control">
+      <label>Population</label>
+      <div><strong id="pop">0</strong> bugs</div>
+    </div>
+
+    <div class="card control">
+      <label>Tips</label>
+      <ul style="margin:0; padding-left:16px; color:var(--muted)">
+        <li>Click a bug to squish it 🩸</li>
+        <li>Drag the slider to change speed</li>
+        <li>"Reset" clears the world</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="world-wrap">
+    <div id="world" class="world" aria-label="simulation world">
+      <div class="grid" aria-hidden="true"></div>
+      <!-- bugs are injected here -->
+    </div>
+  </section>
+
+  <footer>
+    Built for fun. No external libraries. Single file.
+  </footer>
+
+  <script>
+    (function(){
+      const world = document.getElementById('world');
+      const toggleBtn = document.getElementById('toggle');
+      const resetBtn  = document.getElementById('reset');
+      const addBtn    = document.getElementById('addBugs');
+      const countIn   = document.getElementById('bugsCount');
+      const speedIn   = document.getElementById('speed');
+      const speedVal  = document.getElementById('speedVal');
+      const turnIn    = document.getElementById('turn');
+      const turnVal   = document.getElementById('turnVal');
+      const popEl     = document.getElementById('pop');
+
+      let running = false;
+      let bugs = [];
+      let lastTime = performance.now();
+      let speedScale = parseFloat(speedIn.value);
+      let turnRate = parseFloat(turnIn.value);
+
+      function rand(min, max){ return Math.random() * (max - min) + min; }
+
+      function createBug(x, y){
+        const el = document.createElement('div');
+        el.className = 'bug';
+        el.innerHTML = '<span>🐞</span>';
+        world.appendChild(el);
+
+        const bug = {
+          el,
+          x: x ?? rand(0, world.clientWidth - 28),
+          y: y ?? rand(0, world.clientHeight - 28),
+          angle: rand(0, Math.PI * 2),
+          speed: rand(25, 60), // px/s base speed
+          turnBias: rand(-0.4, 0.4),
+          alive: true
+        };
+
+        el.addEventListener('click', () => squish(bug));
+        bugs.push(bug);
+        updatePopulation();
+        return bug;
+      }
+
+      function squish(bug){
+        if(!bug.alive) return;
+        bug.alive = false;
+        const span = bug.el.querySelector('span');
+        span.classList.add('squish');
+        span.textContent = '💥';
+        setTimeout(() => {
+          bug.el.remove();
+          bugs = bugs.filter(b => b !== bug);
+          updatePopulation();
+        }, 180);
+      }
+
+      function updatePopulation(){ popEl.textContent = bugs.length; }
+
+      function resizeBounds(){
+        // Keep bugs inside bounds on resize
+        for(const b of bugs){
+          b.x = Math.max(0, Math.min(b.x, world.clientWidth - 28));
+          b.y = Math.max(0, Math.min(b.y, world.clientHeight - 28));
+        }
+      }
+
+      function step(dt){
+        const w = world.clientWidth, h = world.clientHeight;
+        for(const b of bugs){
+          if(!b.alive) continue;
+          // Random turn (Brownian-ish)
+          b.angle += (rand(-1, 1) * turnRate + b.turnBias * 0.02) * dt;
+          const v = b.speed * speedScale;
+          b.x += Math.cos(b.angle) * v * dt;
+          b.y += Math.sin(b.angle) * v * dt;
+
+          // Bounce on walls
+          if(b.x < 0){ b.x = 0; b.angle = Math.PI - b.angle; }
+          if(b.y < 0){ b.y = 0; b.angle = -b.angle; }
+          if(b.x > w - 28){ b.x = w - 28; b.angle = Math.PI - b.angle; }
+          if(b.y > h - 28){ b.y = h - 28; b.angle = -b.angle; }
+
+          // Render
+          b.el.style.transform = `translate(${b.x}px, ${b.y}px)`;
+          b.el.querySelector('span').style.transform = `rotate(${b.angle}rad)`;
+        }
+      }
+
+      function loop(now){
+        if(!running){ lastTime = now; return; }
+        const dt = Math.min(0.05, (now - lastTime) / 1000); // clamp for stability
+        lastTime = now;
+        step(dt);
+        requestAnimationFrame(loop);
+      }
+
+      // UI events
+      toggleBtn.addEventListener('click', () => {
+        running = !running;
+        toggleBtn.textContent = running ? '⏸️ Pause' : '▶️ Start';
+        if(running) requestAnimationFrame(loop);
+      });
+
+      resetBtn.addEventListener('click', () => {
+        for(const b of bugs) b.el.remove();
+        bugs = [];
+        updatePopulation();
+        running = false;
+        toggleBtn.textContent = '▶️ Start';
+      });
+
+      addBtn.addEventListener('click', () => {
+        const n = Math.max(1, Math.min(200, parseInt(countIn.value || '1', 10)));
+        for(let i=0;i<n;i++) createBug();
+      });
+
+      speedIn.addEventListener('input', () => {
+        speedScale = parseFloat(speedIn.value);
+        speedVal.textContent = speedScale.toFixed(1) + '×';
+      });
+
+      turnIn.addEventListener('input', () => {
+        turnRate = parseFloat(turnIn.value);
+        turnVal.textContent = turnRate.toFixed(2);
+      });
+
+      new ResizeObserver(resizeBounds).observe(world);
+
+      // Spawn a few by default
+      for(let i=0;i<8;i++) createBug();
+      updatePopulation();
+    })();
+  </script>
+</body>
+</html>
