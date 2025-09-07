@@ -1,324 +1,406 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Bug Simulator — Simple HTML</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>곤충 시뮬레이션</title>
   <style>
-    :root {
-      --bg: #0f172a;         /* slate-900 */
-      --panel: #111827;      /* gray-900 */
-      --muted: #94a3b8;      /* slate-400 */
-      --text: #e5e7eb;       /* gray-200 */
-      --accent: #22d3ee;     /* cyan-400 */
-      --accent-2: #a78bfa;   /* violet-400 */
-      --danger: #fb7185;     /* rose-400 */
+    :root{
+      --bg: #0b1020;
+      --panel: #121a33;
+      --accent: #7bd389;
+      --accent-2: #69a7ff;
+      --text: #e6eefc;
+      --muted: #97a3b6;
+      --danger: #ff6b6b;
     }
+    *{box-sizing: border-box}
+    html,body{height:100%;}
+    body{
+      margin:0; background: radial-gradient(1200px 600px at 70% -10%, #1b2a55 0%, var(--bg) 50%), var(--bg);
+      color: var(--text); font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple SD Gothic Neo", "Malgun Gothic", "맑은 고딕", sans-serif;
+      display:flex; align-items:stretch; gap:16px; padding:16px;
+    }
+    .panel{
+      width: 320px; min-width: 280px; max-width: 420px; background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      padding: 16px 16px 12px; position: relative; backdrop-filter: blur(6px);
+    }
+    h1{font-size: 20px; margin: 0 0 8px; letter-spacing: .5px}
+    .sub{color: var(--muted); font-size:12px; margin-bottom:12px}
+    .row{display:flex; align-items:center; justify-content:space-between; gap:12px; margin:10px 0}
+    .controls{display:grid; grid-template-columns: 1fr; gap: 10px;}
+    .control{display:grid; grid-template-columns: 1fr auto; gap:8px; align-items:center;}
+    .control label{font-size:13px; color: var(--text); opacity:.9}
+    .control input[type="range"]{width:100%}
+    .pill{font-variant-numeric: tabular-nums; font-size:12px; padding:4px 8px; border-radius:999px; background: rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08)}
+    .btns{display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; margin-top:6px}
+    button{
+      cursor:pointer; border:1px solid rgba(255,255,255,0.08); background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03)); color: var(--text);
+      padding:10px 12px; border-radius:14px; font-weight:600; transition: transform .06s ease, box-shadow .2s ease, filter .2s ease;
+    }
+    button:hover{filter: brightness(1.05)}
+    button:active{transform: translateY(1px) scale(.997)}
+    .primary{border-color: rgba(123,211,137,0.35); box-shadow: inset 0 0 0 1px rgba(123,211,137,0.25)}
+    .danger{border-color: rgba(255,107,107,0.35); box-shadow: inset 0 0 0 1px rgba(255,107,107,0.2)}
+    .toggle{display:flex; gap:8px; align-items:center}
+    .toggle input{accent-color: var(--accent)}
 
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
-        Noto Sans, Ubuntu, Cantarell, Helvetica Neue, Arial, "Apple Color Emoji",
-        "Segoe UI Emoji";
-      background: radial-gradient(1200px 600px at 70% -10%, #1f2937 0%, var(--bg) 50%), var(--bg);
-      color: var(--text);
-      min-height: 100svh;
-      display: grid;
-      grid-template-rows: auto 1fr auto;
-      gap: 16px;
-    }
+    .metrics{display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; margin-top:8px}
+    .metric{background: rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:10px}
+    .metric .k{font-size:11px; color: var(--muted)}
+    .metric .v{font-size:18px; font-variant-numeric: tabular-nums}
 
-    header {
-      padding: 16px clamp(16px, 4vw, 32px) 0;
-    }
-    header h1 {
-      margin: 0 0 6px 0;
-      font-size: clamp(20px, 3.2vw, 32px);
-      letter-spacing: 0.2px;
-    }
-    header p { margin: 0; color: var(--muted); }
-
-    .controls {
-      display: grid;
-      grid-template-columns: repeat(6, minmax(0, 1fr));
-      gap: 10px;
-      padding: 10px clamp(16px, 4vw, 32px);
-    }
-
-    .card {
-      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-    }
-
-    .control { padding: 10px; display: grid; gap: 8px; align-content: start; }
-    .control label { font-size: 12px; color: var(--muted); }
-
-    input[type="range"] { width: 100%; }
-    input[type="number"] {
-      width: 100%;
-      background: #0b1020;
-      border: 1px solid rgba(255,255,255,0.12);
-      color: var(--text);
-      border-radius: 10px;
-      padding: 8px 10px;
-    }
-
-    button {
-      cursor: pointer;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
-      color: var(--text);
-      font-weight: 600;
-      transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
-    }
-    button:hover { transform: translateY(-1px); filter: brightness(1.1); }
-    .primary { border-color: rgba(34, 211, 238, 0.45); box-shadow: 0 0 0 2px rgba(34,211,238,0.18) inset; }
-    .danger { border-color: rgba(251, 113, 133, 0.45); box-shadow: 0 0 0 2px rgba(251,113,133,0.18) inset; }
-
-    .world-wrap {
-      padding: 0 clamp(16px, 4vw, 32px) 16px;
-    }
-
-    .world {
-      position: relative;
-      height: min(70vh, 70svh);
-      min-height: 380px;
-      border-radius: 18px;
-      overflow: hidden;
-      background:
-        radial-gradient(120px 60px at 20% 20%, rgba(167,139,250,0.15), transparent 60%),
-        radial-gradient(180px 120px at 80% 70%, rgba(34,211,238,0.12), transparent 60%),
-        #0b1020;
-      border: 1px solid rgba(255,255,255,0.08);
-    }
-
-    .grid {
-      position: absolute; inset: 0; pointer-events: none;
-      background-image: linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
-      background-size: 24px 24px;
-    }
-
-    .bug {
-      position: absolute;
-      width: 28px; height: 28px;
-      display: grid; place-items: center;
-      user-select: none;
-      will-change: transform;
-      transition: filter 120ms ease;
-    }
-    .bug span {
-      font-size: 22px; line-height: 1; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.6));
-      transform-origin: 50% 60%; display: inline-block;
-    }
-    .bug:hover { filter: brightness(1.2); }
-    .squish { transform: scale(0.6) rotate(15deg); opacity: 0.6; }
-
-    footer { padding: 0 clamp(16px, 4vw, 32px) 24px; color: var(--muted); font-size: 12px; }
-
-    @media (max-width: 720px) {
-      .controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
+    .canvas-wrap{flex:1; position:relative; border-radius:20px; overflow:hidden; border: 1px solid rgba(255,255,255,0.08); background: radial-gradient(1000px 600px at 30% -10%, rgba(105,167,255,.08), transparent),
+      radial-gradient(800px 500px at 70% 110%, rgba(123,211,137,.08), transparent),
+      #030712;}
+    canvas{display:block; width:100%; height:100%}
+    .legend{position:absolute; right:12px; bottom:10px; font-size:11px; color: var(--muted); background: rgba(0,0,0,0.3); padding:6px 8px; border-radius:10px; border:1px solid rgba(255,255,255,0.08)}
+    .legend i{display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px}
+    .legend .food{background: var(--accent)}
+    .legend .bug{background: var(--accent-2)}
   </style>
 </head>
 <body>
-  <header>
-    <h1>🪳 Bug Simulator</h1>
-    <p>Simple HTML + CSS + JS. Add bugs, change speed, click a bug to squish it. Enjoy!</p>
-  </header>
+  <aside class="panel">
+    <h1>곤충 시뮬레이션 🐜</h1>
+    <div class="sub">랜덤 보행 + 먹이 탐색 + 번식/사망 에너지 모델</div>
 
-  <section class="controls">
-    <div class="card control" role="group" aria-label="simulation controls">
-      <label>Simulation</label>
-      <div style="display:flex; gap:8px; flex-wrap:wrap">
-        <button id="toggle" class="primary">▶️ Start</button>
-        <button id="reset" class="danger">⟲ Reset</button>
+    <div class="metrics">
+      <div class="metric"><div class="k">FPS</div><div class="v" id="fps">0</div></div>
+      <div class="metric"><div class="k">개체수</div><div class="v" id="pop">0</div></div>
+      <div class="metric"><div class="k">먹이</div><div class="v" id="foodCount">0</div></div>
+      <div class="metric"><div class="k">세대(출생)</div><div class="v" id="births">0</div></div>
+    </div>
+
+    <div class="controls" style="margin-top:12px">
+      <div class="control">
+        <label>초기 곤충 수</label>
+        <div class="pill"><span id="v-initial">40</span></div>
+        <input id="initial" type="range" min="5" max="200" step="1" value="40" />
+      </div>
+      <div class="control">
+        <label>최대 개체수</label>
+        <div class="pill"><span id="v-maxPop">150</span></div>
+        <input id="maxPop" type="range" min="20" max="500" step="10" value="150" />
+      </div>
+      <div class="control">
+        <label>최대 속력</label>
+        <div class="pill"><span id="v-speed">2.2</span></div>
+        <input id="speed" type="range" min="0.5" max="5" step="0.1" value="2.2" />
+      </div>
+      <div class="control">
+        <label>시야 반경</label>
+        <div class="pill"><span id="v-vision">90</span></div>
+        <input id="vision" type="range" min="20" max="180" step="5" value="90" />
+      </div>
+      <div class="control">
+        <label>먹이 생성/초</label>
+        <div class="pill"><span id="v-foodRate">0.8</span></div>
+        <input id="foodRate" type="range" min="0" max="3" step="0.1" value="0.8" />
+      </div>
+      <div class="control">
+        <label>곤충 크기</label>
+        <div class="pill"><span id="v-size">3.5</span></div>
+        <input id="size" type="range" min="2" max="6" step="0.1" value="3.5" />
+      </div>
+      <div class="row toggle">
+        <input id="trails" type="checkbox" checked />
+        <label for="trails">잔상(트레일) 효과</label>
+      </div>
+      <div class="btns">
+        <button id="toggle" class="primary">일시정지</button>
+        <button id="reset" class="danger">리셋</button>
+        <button id="spawnFood">먹이 추가</button>
+        <button id="spawnBugs">곤충 추가</button>
       </div>
     </div>
 
-    <div class="card control">
-      <label for="bugsCount">Add Bugs</label>
-      <div style="display:flex; gap:8px">
-        <input id="bugsCount" type="number" min="1" max="200" value="5" />
-        <button id="addBugs" title="Add bugs">➕ Add</button>
-      </div>
+    <div style="margin-top:12px; font-size:12px; color:var(--muted)">
+      • 캔버스를 클릭하면 그 위치에 먹이가 생성됩니다.<br/>
+      • 에너지가 높아지면 번식하고, 낮아지면 사망합니다.
     </div>
+  </aside>
 
-    <div class="card control">
-      <label for="speed">Speed</label>
-      <input id="speed" type="range" min="0.2" max="3" value="1" step="0.1" />
-      <small id="speedVal" aria-live="polite">1.0×</small>
-    </div>
-
-    <div class="card control">
-      <label for="turn">Wiggle / Turn Rate</label>
-      <input id="turn" type="range" min="0" max="1" value="0.35" step="0.05" />
-      <small id="turnVal">0.35</small>
-    </div>
-
-    <div class="card control">
-      <label>Population</label>
-      <div><strong id="pop">0</strong> bugs</div>
-    </div>
-
-    <div class="card control">
-      <label>Tips</label>
-      <ul style="margin:0; padding-left:16px; color:var(--muted)">
-        <li>Click a bug to squish it 🩸</li>
-        <li>Drag the slider to change speed</li>
-        <li>"Reset" clears the world</li>
-      </ul>
-    </div>
-  </section>
-
-  <section class="world-wrap">
-    <div id="world" class="world" aria-label="simulation world">
-      <div class="grid" aria-hidden="true"></div>
-      <!-- bugs are injected here -->
-    </div>
-  </section>
-
-  <footer>
-    Built for fun. No external libraries. Single file.
-  </footer>
+  <main class="canvas-wrap">
+    <canvas id="world"></canvas>
+    <div class="legend"><i class="bug"></i>곤충 <span style="margin:0 6px">|</span> <i class="food"></i>먹이</div>
+  </main>
 
   <script>
-    (function(){
-      const world = document.getElementById('world');
-      const toggleBtn = document.getElementById('toggle');
-      const resetBtn  = document.getElementById('reset');
-      const addBtn    = document.getElementById('addBugs');
-      const countIn   = document.getElementById('bugsCount');
-      const speedIn   = document.getElementById('speed');
-      const speedVal  = document.getElementById('speedVal');
-      const turnIn    = document.getElementById('turn');
-      const turnVal   = document.getElementById('turnVal');
-      const popEl     = document.getElementById('pop');
+    // ===== 유틸리티 =====
+    const rand = (min, max) => Math.random() * (max - min) + min;
+    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+    const dist2 = (ax, ay, bx, by) => { const dx=ax-bx, dy=ay-by; return dx*dx+dy*dy; };
 
-      let running = false;
-      let bugs = [];
-      let lastTime = performance.now();
-      let speedScale = parseFloat(speedIn.value);
-      let turnRate = parseFloat(turnIn.value);
+    // ===== 캔버스/크기 =====
+    const canvas = document.getElementById('world');
+    const ctx = canvas.getContext('2d');
 
-      function rand(min, max){ return Math.random() * (max - min) + min; }
+    const dpiFix = () => {
+      const ratio = Math.max(1, Math.floor(window.devicePixelRatio || 1));
+      const { clientWidth: w, clientHeight: h } = canvas;
+      canvas.width = w * ratio; canvas.height = h * ratio; ctx.scale(ratio, ratio);
+    };
+    const fit = () => {
+      const wrap = document.querySelector('.canvas-wrap');
+      canvas.style.width = wrap.clientWidth + 'px';
+      canvas.style.height = wrap.clientHeight + 'px';
+      // reset transform before scaling again
+      ctx.setTransform(1,0,0,1,0,0);
+      dpiFix();
+    };
+    new ResizeObserver(fit).observe(document.querySelector('.canvas-wrap'));
+    window.addEventListener('load', fit);
 
-      function createBug(x, y){
-        const el = document.createElement('div');
-        el.className = 'bug';
-        el.innerHTML = '<span>🐞</span>';
-        world.appendChild(el);
+    // ===== 환경/상태 =====
+    const state = {
+      running: true,
+      bugs: [],
+      foods: [],
+      births: 0,
+      lastSpawn: 0,
+      frames: 0,
+      lastFpsTime: performance.now(),
+      fps: 0
+    };
 
-        const bug = {
-          el,
-          x: x ?? rand(0, world.clientWidth - 28),
-          y: y ?? rand(0, world.clientHeight - 28),
-          angle: rand(0, Math.PI * 2),
-          speed: rand(25, 60), // px/s base speed
-          turnBias: rand(-0.4, 0.4),
-          alive: true
-        };
+    const params = {
+      initial: 40,
+      maxPop: 150,
+      maxSpeed: 2.2,
+      vision: 90,
+      foodRate: 0.8, // per second
+      size: 3.5,
+      energyLoss: 3.5, // per 1000ms
+      eatGain: 28,
+      reproduceAt: 120,
+      bounceFactor: 0.9
+    };
 
-        el.addEventListener('click', () => squish(bug));
-        bugs.push(bug);
-        updatePopulation();
-        return bug;
+    // ===== UI 바인딩 =====
+    const bindRange = (id, key, fmt=(v)=>v) => {
+      const el = document.getElementById(id);
+      const v = document.getElementById('v-'+id);
+      const apply = () => { params[key] = el.type==='range'? Number(el.value):el.value; v.textContent = fmt(el.value); };
+      el.addEventListener('input', apply); apply();
+    };
+    bindRange('initial', 'initial', v=>v);
+    bindRange('maxPop', 'maxPop', v=>v);
+    bindRange('speed', 'maxSpeed', v=>Number(v).toFixed(1));
+    bindRange('vision', 'vision', v=>v);
+    bindRange('foodRate', 'foodRate', v=>Number(v).toFixed(1));
+    bindRange('size', 'size', v=>Number(v).toFixed(1));
+
+    document.getElementById('toggle').onclick = () => {
+      state.running = !state.running;
+      document.getElementById('toggle').textContent = state.running ? '일시정지' : '재생';
+      if(state.running) loop();
+    };
+    document.getElementById('reset').onclick = () => resetWorld();
+    document.getElementById('spawnFood').onclick = () => spawnFood(20);
+    document.getElementById('spawnBugs').onclick = () => spawnBugs(10);
+
+    const trailsChk = document.getElementById('trails');
+
+    // ===== 개체(곤충) =====
+    let bugId = 1;
+    class Bug{
+      constructor(x, y){
+        this.id = bugId++;
+        this.x = x; this.y = y;
+        const ang = rand(0, Math.PI*2);
+        const spd = rand(0.5, params.maxSpeed);
+        this.vx = Math.cos(ang)*spd;
+        this.vy = Math.sin(ang)*spd;
+        this.energy = rand(60, 100);
+        this.vision = params.vision + rand(-10, 10);
+        this.size = params.size + rand(-0.4, 0.4);
       }
+      step(dt, W, H){
+        // 에너지 소모
+        this.energy -= params.energyLoss * dt;
+        if(this.energy <= 0){ return false; }
 
-      function squish(bug){
-        if(!bug.alive) return;
-        bug.alive = false;
-        const span = bug.el.querySelector('span');
-        span.classList.add('squish');
-        span.textContent = '💥';
-        setTimeout(() => {
-          bug.el.remove();
-          bugs = bugs.filter(b => b !== bug);
-          updatePopulation();
-        }, 180);
-      }
-
-      function updatePopulation(){ popEl.textContent = bugs.length; }
-
-      function resizeBounds(){
-        // Keep bugs inside bounds on resize
-        for(const b of bugs){
-          b.x = Math.max(0, Math.min(b.x, world.clientWidth - 28));
-          b.y = Math.max(0, Math.min(b.y, world.clientHeight - 28));
+        // 목표(가장 가까운 먹이)
+        let tx = null, ty = null, bestD2 = Infinity;
+        for(const f of state.foods){
+          const d2 = dist2(this.x, this.y, f.x, f.y);
+          if(d2 < bestD2 && d2 < this.vision*this.vision){
+            bestD2 = d2; tx = f.x; ty = f.y;
+          }
         }
-      }
 
-      function step(dt){
-        const w = world.clientWidth, h = world.clientHeight;
-        for(const b of bugs){
-          if(!b.alive) continue;
-          // Random turn (Brownian-ish)
-          b.angle += (rand(-1, 1) * turnRate + b.turnBias * 0.02) * dt;
-          const v = b.speed * speedScale;
-          b.x += Math.cos(b.angle) * v * dt;
-          b.y += Math.sin(b.angle) * v * dt;
-
-          // Bounce on walls
-          if(b.x < 0){ b.x = 0; b.angle = Math.PI - b.angle; }
-          if(b.y < 0){ b.y = 0; b.angle = -b.angle; }
-          if(b.x > w - 28){ b.x = w - 28; b.angle = Math.PI - b.angle; }
-          if(b.y > h - 28){ b.y = h - 28; b.angle = -b.angle; }
-
-          // Render
-          b.el.style.transform = `translate(${b.x}px, ${b.y}px)`;
-          b.el.querySelector('span').style.transform = `rotate(${b.angle}rad)`;
+        // 스티어링(목표 향하기 + 랜덤 지그재그)
+        let ax = rand(-0.5, 0.5), ay = rand(-0.5, 0.5);
+        if(tx!==null){
+          const dx = tx - this.x, dy = ty - this.y;
+          const len = Math.hypot(dx,dy) || 1;
+          ax += (dx/len) * 0.8; ay += (dy/len) * 0.8;
         }
+
+        // 가속 적용
+        this.vx = (this.vx + ax*dt*60);
+        this.vy = (this.vy + ay*dt*60);
+
+        // 속도 제한
+        const spd = Math.hypot(this.vx, this.vy) || 1;
+        const maxV = params.maxSpeed;
+        if(spd > maxV){ this.vx = this.vx/spd*maxV; this.vy = this.vy/spd*maxV; }
+
+        // 위치 업데이트
+        this.x += this.vx; this.y += this.vy;
+
+        // 벽 반발(부드러운 반사)
+        const m = 8;
+        if(this.x < m){ this.x = m; this.vx = Math.abs(this.vx)*params.bounceFactor; }
+        if(this.x > W-m){ this.x = W-m; this.vx = -Math.abs(this.vx)*params.bounceFactor; }
+        if(this.y < m){ this.y = m; this.vy = Math.abs(this.vy)*params.bounceFactor; }
+        if(this.y > H-m){ this.y = H-m; this.vy = -Math.abs(this.vy)*params.bounceFactor; }
+
+        // 먹이 섭취
+        for(let i=state.foods.length-1;i>=0;i--){
+          const f = state.foods[i];
+          if(dist2(this.x, this.y, f.x, f.y) < (this.size+3)*(this.size+3)){
+            state.foods.splice(i,1);
+            this.energy += params.eatGain;
+            break;
+          }
+        }
+
+        // 번식
+        if(this.energy > params.reproduceAt && state.bugs.length < params.maxPop){
+          this.energy *= 0.55; // 에너지 분할
+          const child = new Bug(this.x + rand(-8,8), this.y + rand(-8,8));
+          // 약간의 유전 변이
+          child.size = clamp(this.size + rand(-0.2,0.2), 2, 6);
+          child.vision = clamp(this.vision + rand(-5,5), 20, 180);
+          state.bugs.push(child);
+          state.births++;
+        }
+
+        return true;
+      }
+      draw(ctx){
+        const angle = Math.atan2(this.vy, this.vx);
+        const s = this.size;
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(angle);
+        // 몸통(삼각형)
+        ctx.beginPath();
+        ctx.moveTo(s*2, 0);
+        ctx.lineTo(-s, s*1.2);
+        ctx.lineTo(-s, -s*1.2);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(105,167,255,0.95)';
+        ctx.fill();
+        // 눈점
+        ctx.fillStyle = 'rgba(255,255,255,0.8)';
+        ctx.beginPath(); ctx.arc(s*1.2, -s*0.3, 1.2, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(s*1.2, s*0.3, 1.2, 0, Math.PI*2); ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    // ===== 초기화/스폰 =====
+    function spawnBugs(n){
+      const W = canvas.clientWidth, H = canvas.clientHeight;
+      for(let i=0;i<n;i++){
+        state.bugs.push(new Bug(rand(20, W-20), rand(20, H-20)));
+      }
+      updateHud();
+    }
+    function spawnFood(n){
+      const W = canvas.clientWidth, H = canvas.clientHeight;
+      for(let i=0;i<n;i++){
+        state.foods.push({x: rand(10, W-10), y: rand(10, H-10)});
+      }
+      updateHud();
+    }
+    function resetWorld(){
+      state.bugs.length = 0; state.foods.length = 0; state.births = 0;
+      spawnBugs(params.initial);
+      spawnFood(Math.round(params.initial*0.8));
+    }
+
+    // 캔버스 클릭 시 먹이 생성
+    canvas.addEventListener('mousedown', (e)=>{
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left; const y = e.clientY - rect.top;
+      state.foods.push({x,y}); updateHud();
+    });
+
+    // ===== 렌더링/루프 =====
+    let lastTime = performance.now();
+    function loop(){
+      if(!state.running) return;
+      const now = performance.now();
+      const dt = Math.min(0.05, (now - lastTime)/1000); // 최대 50ms
+      lastTime = now;
+
+      step(dt);
+      draw();
+
+      // FPS 계산
+      state.frames++;
+      if(now - state.lastFpsTime >= 500){
+        state.fps = Math.round((state.frames*1000) / (now - state.lastFpsTime));
+        state.frames = 0; state.lastFpsTime = now;
+        document.getElementById('fps').textContent = state.fps;
       }
 
-      function loop(now){
-        if(!running){ lastTime = now; return; }
-        const dt = Math.min(0.05, (now - lastTime) / 1000); // clamp for stability
-        lastTime = now;
-        step(dt);
-        requestAnimationFrame(loop);
+      requestAnimationFrame(loop);
+    }
+
+    function step(dt){
+      const W = canvas.clientWidth, H = canvas.clientHeight;
+      // 자동 먹이 스폰
+      state.lastSpawn += dt;
+      const rate = params.foodRate; // per second
+      const expect = state.lastSpawn * rate;
+      if(expect >= 1){
+        const n = Math.floor(expect);
+        spawnFood(n);
+        state.lastSpawn = state.lastSpawn - n/rate;
       }
 
-      // UI events
-      toggleBtn.addEventListener('click', () => {
-        running = !running;
-        toggleBtn.textContent = running ? '⏸️ Pause' : '▶️ Start';
-        if(running) requestAnimationFrame(loop);
-      });
+      // 곤충 업데이트
+      for(let i=state.bugs.length-1;i>=0;i--){
+        const ok = state.bugs[i].step(dt, W, H);
+        if(!ok) state.bugs.splice(i,1);
+      }
+      updateHud();
+    }
 
-      resetBtn.addEventListener('click', () => {
-        for(const b of bugs) b.el.remove();
-        bugs = [];
-        updatePopulation();
-        running = false;
-        toggleBtn.textContent = '▶️ Start';
-      });
+    function draw(){
+      const W = canvas.clientWidth, H = canvas.clientHeight;
+      if(trailsChk.checked){
+        ctx.fillStyle = 'rgba(3, 7, 18, 0.2)'; // 잔상
+        ctx.fillRect(0,0,W,H);
+      }else{
+        ctx.clearRect(0,0,W,H);
+      }
 
-      addBtn.addEventListener('click', () => {
-        const n = Math.max(1, Math.min(200, parseInt(countIn.value || '1', 10)));
-        for(let i=0;i<n;i++) createBug();
-      });
+      // 먹이
+      ctx.fillStyle = 'rgba(123, 211, 137, 0.95)';
+      for(const f of state.foods){
+        ctx.beginPath(); ctx.arc(f.x, f.y, 3, 0, Math.PI*2); ctx.fill();
+      }
 
-      speedIn.addEventListener('input', () => {
-        speedScale = parseFloat(speedIn.value);
-        speedVal.textContent = speedScale.toFixed(1) + '×';
-      });
+      // 곤충
+      for(const b of state.bugs){ b.draw(ctx); }
+    }
 
-      turnIn.addEventListener('input', () => {
-        turnRate = parseFloat(turnIn.value);
-        turnVal.textContent = turnRate.toFixed(2);
-      });
+    function updateHud(){
+      document.getElementById('pop').textContent = state.bugs.length;
+      document.getElementById('foodCount').textContent = state.foods.length;
+      document.getElementById('births').textContent = state.births;
+    }
 
-      new ResizeObserver(resizeBounds).observe(world);
-
-      // Spawn a few by default
-      for(let i=0;i<8;i++) createBug();
-      updatePopulation();
-    })();
+    // 시작
+    resetWorld();
+    loop();
   </script>
 </body>
 </html>
